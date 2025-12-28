@@ -146,6 +146,7 @@ class Config:
                         "file_name": config_type_validator(str),
                         "video_codec": config_type_validator(str),
                         "audio": config_enum_validator({"yes", "no", "ask"}),
+                        "start_recording": config_enum_validator({"yes", "no", "ask"}),
                     }
                 ),
                 "notification_actions": config_dict_validator(
@@ -805,11 +806,13 @@ class Screencast(CaptureMode):
             if audio_raw_input is None:
                 raise CanceledError("No audio preference selected.")
 
-        start_recording = ask(
-                ["yes", "cancel"], prompt=self.get_prompt() + "Start recording? "
-            )
-        if start_recording != "yes":
-            raise CanceledError()
+        start_recording = self.config_getter("start_recording")
+
+        if start_recording == "ask":
+            start_recording = ask(["yes", "cancel"],
+                                  prompt=self.get_prompt() + "Start recording? ")
+            if start_recording != "yes":
+                raise CanceledError()
 
         take_screencast(
             filepath=filepath,
